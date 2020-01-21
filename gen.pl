@@ -83,6 +83,7 @@ goto gen unless  ($#ARGV==0) && ( $ARGV[0] eq '-r' );
 
 open(F,"saved_ressources.csv") or die;
 $reload=1;
+$etat=0;
 while (<F>)
 {
     s/\r//gs;
@@ -98,13 +99,36 @@ while (<F>)
     elsif (/^,*$/)
     {
 	# ligne vide (donc nouvelle ressource, pas forcement presente dans le nouveau plan de charge)
+	$etat=1;
     }
     elsif (/^total/)
     {
 	# fin du bloc de conso
+	$etat=0;
     }
-    else
+    elsif ($etat==1)
     {
+	# ligne dispo ressource par mois (car on est dans l'etat 1)
+	# pierre,5,5,5,5,5,5,5,5,5,5,5,5,60
+	@rmois=split /,/,$_;
+	$r=shift @rmois;
+	pop @rmois;
+	$etat=2;
+    }
+    elsif ($etat==2)
+    {
+	# ligne d'affectation de jours d'une ressource a une activite
+	# archi,1,1,1,1,1,1,1,1,1,1,1,1,12
+	@ra=split /,/,$_;
+	$a=shift @ra;
+	if (exists $htact{$a})
+	{
+	    pop @ra;
+	    foreach $prev (@ra)
+	    {
+		$htoldra{$r}{$a}=$prev if exists $htares{$r};
+	    }
+	}
     }
 }
 
