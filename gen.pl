@@ -110,23 +110,30 @@ while (<F>)
     {
 	# ligne dispo ressource par mois (car on est dans l'etat 1)
 	# pierre,5,5,5,5,5,5,5,5,5,5,5,5,60
+	print "1 : $_ \n" if $verbose;
 	@rmois=split /,/,$_;
 	$r=shift @rmois;
 	pop @rmois;
+	print "  -> ",join(',',@rmois),"\n" if $verbose;
 	$etat=2;
     }
-    elsif ($etat==2)
+    elsif (($etat==2)&&(exists $htares{$r}))
     {
 	# ligne d'affectation de jours d'une ressource a une activite
 	# archi,1,1,1,1,1,1,1,1,1,1,1,1,12
+	print "2 : $_ \n" if $verbose;
 	@ra=split /,/,$_;
 	$a=shift @ra;
 	if (exists $htact{$a})
 	{
 	    pop @ra;
-	    foreach $prev (@ra)
+	    print "    -> ($a) ",join(',',@ra),"\n" if $verbose;
+	    for($i=0;$i<$#ra;$i++)
 	    {
-		$htoldra{$r}{$a}=$prev if exists $htares{$r};
+		$prev=$ra[$i];
+		$m=$omois[$i];
+		$htoldra{$r}{$a}{$m}=$prev;
+		print "     $r/$a/$m=$prev\n" if $verbose>1;
 	    }
 	}
     }
@@ -135,6 +142,10 @@ while (<F>)
 close F;
 
  gen: ;
+
+# generation des styles
+open (FS,">styles.csv") or die;
+
 # generation du fichier csv des ressources (celui ou on va choisir combien la ressource R impute chaque mois sur ces differentes activites)
 open (F,">ressources.csv") or die;
 $y=1;
@@ -149,19 +160,19 @@ foreach $r (@tres)
     $y0=$y;
     foreach $a (@{$htares{$r}})
     {
-	print F "$a,";
+	print F "$a";
 	if ($reload)
 	{
 	    for($x=0;$x<$nbmois;$x++)
 	    {
 		$charge=0;
-		$charge=$htreload{$r}{$a}{$mois[$x]} if exists $htreload{$r}{$a}{$mois[$x]};
-		print F "$charge,";
+		$charge=$htoldra{$r}{$a}{$mois[$x]} if exists $htoldra{$r}{$a}{$mois[$x]};
+		print F ",$charge";
 	    }
 	}
 	else
 	{
-	    print F join(',',@zm);
+	    print F ',',join(',',@zm);
 	}
 	print F ",=SOMME(B$y:",$xlet[$nbmois],$y,")\n";
 	$hty{$a}{$r}=$y;
@@ -181,6 +192,7 @@ foreach $r (@tres)
 	$let=$xlet[$x];
 	print F ",=$let",$y-1,"/$let",$y0-1;
     }
+    print FS "pct,ressources,B$y:",$xlet[$nbmois+1],"$y\n";
     print F "\n\n";
     $y+=2;
 }
@@ -201,6 +213,7 @@ foreach $a (@tact)
     print F "$a,",$htact{$a}{'BC'},',',$htact{$a}{'code'},',',$htact{$a}{'mdeb'},',',$htact{$a}{'mfin'},',',$htact{$a}{'hjtot'},',',$htact{$a}{'hjdjc'},',',$raf,',';
     # raf j et % (par rapport au tableau de la conso ressource juste en dessous)
     print F "=H$y-",$xlet[$nbmois+1],$y+$nbres+2,",=I$y/H$y\n";
+    print FS "pct,activite,J$yJ$y\n";
     $y++;
     print F "ressource,",join(',',@mois),",total(j),total(%)\n";
     $y++;
@@ -226,7 +239,9 @@ foreach $a (@tact)
 	$let=$xlet[$x];
 	print F ",=SOMME($let$y1:$let",$y-1,")";
     }
+    print FS "pct,activite,",$xlet[$nbmois+2],$y1,':',$xlet[$nbmois+2],$y,"\n";  
     print F "\n\n";
     $y+=2;
 }
 close F;
+close FS;
