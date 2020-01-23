@@ -213,7 +213,7 @@ foreach $a (@tact)
     print F "$a,",$htact{$a}{'BC'},',',$htact{$a}{'code'},',',$htact{$a}{'mdeb'},',',$htact{$a}{'mfin'},',',$htact{$a}{'hjtot'},',',$htact{$a}{'hjdjc'},',',$raf,',';
     # raf j et % (par rapport au tableau de la conso ressource juste en dessous)
     print F "=H$y-",$xlet[$nbmois+1],$y+$nbres+2,",=I$y/H$y\n";
-    print FS "pct,activite,J$yJ$y\n";
+    print FS "pct,activites,J$yJ$y\n";
     $y++;
     print F "ressource,",join(',',@mois),",total(j),total(%)\n";
     $y++;
@@ -239,7 +239,7 @@ foreach $a (@tact)
 	$let=$xlet[$x];
 	print F ",=SOMME($let$y1:$let",$y-1,")";
     }
-    print FS "pct,activite,",$xlet[$nbmois+2],$y1,':',$xlet[$nbmois+2],$y,"\n";  
+    print FS "pct,activites,",$xlet[$nbmois+2],$y1,':',$xlet[$nbmois+2],$y,"\n";  
     print F "\n\n";
     $y+=2;
 }
