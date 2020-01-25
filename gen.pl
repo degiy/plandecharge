@@ -156,6 +156,7 @@ foreach $r (@tres)
     @max=@{$htmres{$r}};
     $tot=sum @max;
     print F "$r,",join(',',@max),",$tot\n";
+    print FS "color,ressources,A$y:A$y,&H99ccff\n";
     $y++;
     $y0=$y;
     foreach $a (@{$htares{$r}})
@@ -178,6 +179,7 @@ foreach $r (@tres)
 	$hty{$a}{$r}=$y;
 	$y++;	
     }
+    print FS "color,ressources,B$y0:",$xlet[$nbmois],$y-1,",&Hff9966\n";
     print F "total(j)";
     for($x=1;$x<=$nbmois+1;$x++)
     {
