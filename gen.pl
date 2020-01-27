@@ -221,10 +221,11 @@ foreach $a (@tact)
     # info generales sur l'activite
     print F "activite,BC,code,deb,fin,total(j),deja(j),rafi(j),raf(j),raf(%)\n";
     $y++;
-    $raf=$htact{$a}{'hjtot'}-$htact{$a}{'hjdjc'};
+    #$raf=$htact{$a}{'hjtot'}-$htact{$a}{'hjdjc'};
+    $raf="=F$y-G$y";
     print F "$a,",$htact{$a}{'BC'},',',$htact{$a}{'code'},',',$htact{$a}{'mdeb'},',',$htact{$a}{'mfin'},',',$htact{$a}{'hjtot'},',',$htact{$a}{'hjdjc'},',',$raf,',';
     # raf j et % (par rapport au tableau de la conso ressource juste en dessous)
-    print F "=H$y-",$xlet[$nbmois+1],$y+$nbres+2,",=I$y/H$y\n";
+    print F "=H$y-",$xlet[$nbmois+1],$y+$nbres+2,",=I$y/F$y\n";
     print FS "pct,activites,J$yJ$y\n";
     print FS "color,activites,A$y:A$y,&Hcc99FF\n";
     print FS "color,activites,I$y:J$y,&HFFcc99\n";
@@ -251,7 +252,9 @@ foreach $a (@tact)
     for($x=1;$x<=$nbmois+2;$x++)
     {
 	$let=$xlet[$x];
-	print F ",=SOMME($let$y1:$let",$y-1,")";
+	$somme="=SOMME($let$y1:$let".($y-1).")";
+	$somme="0" if $nbres==0;
+	print F ",$somme";
     }
     print FS "pct,activites,",$xlet[$nbmois+2],$y1,':',$xlet[$nbmois+2],$y,"\n";  
     print FS "color,activites,B$y:",$xlet[$nbmois+1],"$y,&Hcccccc\n";  
