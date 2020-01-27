@@ -10,6 +10,7 @@ $verbose=1;
 @tact=();
 @files=();
 $reload=0;
+$nba=1;
 
 # lecture de la config
 open (F,'config.csv') or die "pas de fichier config.csv a lire";
@@ -33,6 +34,8 @@ while(<F>)
 	@mres=split /,/,$_;
 	shift @mres;
 	$res=shift @mres;
+	$res=~s/ *$//;
+	$res=~s/^ *//;
 	push @tres,$res;
 	$htmres{$res}=[@mres];
 	$htares{$res}=[];
@@ -45,6 +48,8 @@ while(<F>)
 	@t=split /,/,$_;
 	shift @t;
 	$act=shift @t;
+	$act=~s/ *$//;
+	$act=~s/^ *//;
 	push @tact,$act;
 	$htact{$act}{'BC'}=shift @t;
 	$htact{$act}{'code'}=shift @t;
@@ -52,6 +57,7 @@ while(<F>)
 	$htact{$act}{'mfin'}=shift @t;
 	$htact{$act}{'hjtot'}=shift @t;
 	$htact{$act}{'hjdjc'}=shift @t;
+	$htact{$act}{'id'}=$nba++;
 	@qui=sort @t;
 	foreach $r (@qui)
 	{
@@ -147,15 +153,15 @@ close F;
 open (FS,">styles.csv") or die;
 
 # generation du fichier csv des ressources (celui ou on va choisir combien la ressource R impute chaque mois sur ces differentes activites)
-open (F,">ressources.csv") or die;
+open (F,">ressources_raw.csv") or die;
 $y=1;
 print F "mois,",join(',',@mois),",total\n\n";
 $y+=2;
 foreach $r (@tres)
 {
     @max=@{$htmres{$r}};
-    $tot=sum @max;
-    print F "$r,",join(',',@max),",$tot\n";
+    #$tot=sum @max;
+    print F "$r,",join(',',@max),",=SOMME(B$y:",$xlet[$nbmois],"$y)\n";
     print FS "color,ressources,A$y:A$y,&H99ccff\n";
     $y++;
     $y0=$y;
@@ -175,7 +181,7 @@ foreach $r (@tres)
 	{
 	    print F ',',join(',',@zm);
 	}
-	print F ",=SOMME(B$y:",$xlet[$nbmois],$y,")\n";
+	print F ",=SOMME(B$y:",$xlet[$nbmois],$y,"),=activites!%%",$htact{$a}{'id'},"%%\n";
 	$hty{$a}{$r}=$y;
 	$y++;	
     }
@@ -199,6 +205,10 @@ foreach $r (@tres)
     $y+=2;
 }
 close F;
+# rechargement pour remplacements
+open (F,"ressources_raw.csv") or die;
+read F,$rsfile,1000000;
+close F;
 
 # generation du fichier csv des activites (recap des estimations de conso par rapport au volume de l'activite)
 open (F,">activites.csv") or die;
@@ -216,6 +226,8 @@ foreach $a (@tact)
     # raf j et % (par rapport au tableau de la conso ressource juste en dessous)
     print F "=H$y-",$xlet[$nbmois+1],$y+$nbres+2,",=I$y/H$y\n";
     print FS "pct,activites,J$yJ$y\n";
+    print FS "color,activites,A$y:A$y,&Hcc99FF\n";
+    print FS "color,activites,I$y:J$y,&HFFcc99\n";
     $y++;
     print F "ressource,",join(',',@mois),",total(j),total(%)\n";
     $y++;
@@ -242,8 +254,17 @@ foreach $a (@tact)
 	print F ",=SOMME($let$y1:$let",$y-1,")";
     }
     print FS "pct,activites,",$xlet[$nbmois+2],$y1,':',$xlet[$nbmois+2],$y,"\n";  
+    print FS "color,activites,B$y:",$xlet[$nbmois+1],"$y,&Hcccccc\n";  
     print F "\n\n";
+    $pats='%%'.$htact{$a}{'id'}.'%%';
+    $patd='I'.($y1-2);
+    $rsfile=~s/$pats/$patd/sg;
     $y+=2;
 }
 close F;
 close FS;
+
+# on ecrit le fichier de ressources avec les placeholders de % d'activite globale remplaces 
+open (F,">ressources.csv") or die;
+print F $rsfile;
+close F;
