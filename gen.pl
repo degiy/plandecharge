@@ -155,14 +155,14 @@ open (FS,">styles.csv") or die;
 # generation du fichier csv des ressources (celui ou on va choisir combien la ressource R impute chaque mois sur ces differentes activites)
 open (F,">ressources_raw.csv") or die;
 $y=1;
-print F "mois,",join(',',@mois),",total\n\n";
+print F "mois;",join(';',@mois),";total\n\n";
 $y+=2;
 foreach $r (@tres)
 {
     @max=@{$htmres{$r}};
     #$tot=sum @max;
-    print F "$r,",join(',',@max),",=SOMME(B$y:",$xlet[$nbmois],"$y)\n";
-    print FS "color,ressources,A$y:A$y,&H99ccff\n";
+    print F "$r;",join(';',@max),";=SOMME(B$y:",$xlet[$nbmois],"$y)\n";
+    print FS "color;ressources;A$y:A$y;&H99ccff\n";
     $y++;
     $y0=$y;
     foreach $a (@{$htares{$r}})
@@ -174,23 +174,23 @@ foreach $r (@tres)
 	    {
 		$charge=0;
 		$charge=$htoldra{$r}{$a}{$mois[$x]} if exists $htoldra{$r}{$a}{$mois[$x]};
-		print F ",$charge";
+		print F ";$charge";
 	    }
 	}
 	else
 	{
-	    print F ',',join(',',@zm);
+	    print F ';',join(';',@zm);
 	}
-	print F ",=SOMME(B$y:",$xlet[$nbmois],$y,"),=activites!%%",$htact{$a}{'id'},"%%\n";
+	print F ";=SOMME(B$y:",$xlet[$nbmois],$y,");=activites!%%",$htact{$a}{'id'},"%%\n";
 	$hty{$a}{$r}=$y;
 	$y++;	
     }
-    print FS "color,ressources,B$y0:",$xlet[$nbmois],$y-1,",&Hff9966\n";
+    print FS "color;ressources;B$y0:",$xlet[$nbmois],$y-1,";&Hff9966\n";
     print F "total(j)";
     for($x=1;$x<=$nbmois+1;$x++)
     {
 	$let=$xlet[$x];
-	print F ",=SOMME($let$y0:$let",$y-1,")";
+	print F ";=SOMME($let$y0:$let",$y-1,")";
     }
     print F "\n";
     $y++;
@@ -198,9 +198,9 @@ foreach $r (@tres)
     for($x=1;$x<=$nbmois+1;$x++)
     {
 	$let=$xlet[$x];
-	print F ",=$let",$y-1,"/$let",$y0-1;
+	print F ";=$let",$y-1,"/$let",$y0-1;
     }
-    print FS "pct,ressources,B$y:",$xlet[$nbmois+1],"$y\n";
+    print FS "pct;ressources;B$y:",$xlet[$nbmois+1],"$y\n";
     print F "\n\n";
     $y+=2;
 }
@@ -219,18 +219,18 @@ foreach $a (@tact)
     @res=sort keys %{$hty{$a}};
     $nbres=$#res+1;
     # info generales sur l'activite
-    print F "activite,BC,code,deb,fin,total(j),deja(j),rafi(j),raf(j),raf(%)\n";
+    print F "activite;BC;code;deb;fin;total(j);deja(j);rafi(j);raf(j);raf(%)\n";
     $y++;
     #$raf=$htact{$a}{'hjtot'}-$htact{$a}{'hjdjc'};
     $raf="=F$y-G$y";
-    print F "$a,",$htact{$a}{'BC'},',',$htact{$a}{'code'},',',$htact{$a}{'mdeb'},',',$htact{$a}{'mfin'},',',$htact{$a}{'hjtot'},',',$htact{$a}{'hjdjc'},',',$raf,',';
+    print F "$a;",$htact{$a}{'BC'},';',$htact{$a}{'code'},';',$htact{$a}{'mdeb'},';',$htact{$a}{'mfin'},';',&nodot($htact{$a}{'hjtot'}),';',&nodot($htact{$a}{'hjdjc'}),';',$raf,';';
     # raf j et % (par rapport au tableau de la conso ressource juste en dessous)
-    print F "=H$y-",$xlet[$nbmois+1],$y+$nbres+2,",=I$y/F$y\n";
-    print FS "pct,activites,J$yJ$y\n";
-    print FS "color,activites,A$y:A$y,&Hcc99FF\n";
-    print FS "color,activites,I$y:J$y,&HFFcc99\n";
+    print F "=H$y-",$xlet[$nbmois+1],$y+$nbres+2,";=I$y/F$y\n";
+    print FS "pct;activites;J$yJ$y\n";
+    print FS "color;activites;A$y:A$y;&Hcc99FF\n";
+    print FS "color;activites;I$y:J$y;&HFFcc99\n";
     $y++;
-    print F "ressource,",join(',',@mois),",total(j),total(%)\n";
+    print F "ressource;",join(';',@mois),";total(j);total(%)\n";
     $y++;
     $y1=$y;
     # pour chaque ressource, recopie des imputs de la feuille des ressources
@@ -241,10 +241,10 @@ foreach $a (@tact)
 	{
 	    $let=$xlet[$x];
 	    $y0=$hty{$a}{$r};
-	    print F ",=ressources!$let$y0";
+	    print F ";=ressources!$let$y0";
 	}
 	# pct du raf initial
-	print F ",=$let$y/H",$y1-2,"\n";
+	print F ";=$let$y/H",$y1-2,"\n";
 	$y++;	
     }
     # total
@@ -254,10 +254,10 @@ foreach $a (@tact)
 	$let=$xlet[$x];
 	$somme="=SOMME($let$y1:$let".($y-1).")";
 	$somme="0" if $nbres==0;
-	print F ",$somme";
+	print F ";$somme";
     }
-    print FS "pct,activites,",$xlet[$nbmois+2],$y1,':',$xlet[$nbmois+2],$y,"\n";  
-    print FS "color,activites,B$y:",$xlet[$nbmois+1],"$y,&Hcccccc\n";  
+    print FS "pct;activites;",$xlet[$nbmois+2],$y1,':',$xlet[$nbmois+2],$y,"\n";  
+    print FS "color;activites;B$y:",$xlet[$nbmois+1],"$y;&Hcccccc\n";  
     print F "\n\n";
     $pats='%%'.$htact{$a}{'id'}.'%%';
     $patd='I'.($y1-2);
@@ -271,3 +271,10 @@ close FS;
 open (F,">ressources.csv") or die;
 print F $rsfile;
 close F;
+
+sub nodot
+{
+    my ($s)=@_;
+    $s=~s/\./,/og;
+    return $s;
+}
